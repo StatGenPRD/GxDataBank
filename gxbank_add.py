@@ -76,7 +76,7 @@ try:
 except subprocess.CalledProcessError as e:
 	raise Exception('Failed to tabix [%s] error: [%s]' % (vcf_path, e.output))
 	
-"""
+
 #must pass vcf-validator
 validator_result = subprocess.check_output(["perl", "-I", bankconstants.vcftools_base + '/perl', bankconstants.vcf_validator, vcf_path],stderr=subprocess.STDOUT)
 validator_result = validator_result.strip().split('\n')
@@ -88,7 +88,7 @@ for error in validator_result :
 	#Our convention is to define these variants on chr0
 	if re.search(r"Not required", error) == None and error != 'chr0:0 .. REF allele listed in the ALT field??' and error != '':
 		raise Exception('ERROR: vcf [' + vcf_path + '] not valid [' + error + ']')
-"""
+
 #must match platform definition - no extra/missing records
 #CHROM,POS,ID,REF,ALT must match
 #Same sort order - may be able to relax this requirement later
