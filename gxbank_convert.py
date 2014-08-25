@@ -18,17 +18,17 @@ import bankconstants
 
 #extract arguments
 parser = OptionParser(description = 'usage: %prog OPTIONS')
-parser.add_option('-a', '--axiom-files', help = 'Path of the directory containing the gzip\'d AxiomGT1 files to be converted',
+parser.add_option('-a', '--axiom-files', help = 'Path of the directory containing the gzip\'d AxiomGT1 files to be converted and the Ps.performance.txt.gz from SNPolisher',
                   action = 'store', type = 'string', dest = 'axiom', default = '')
-parser.add_option('-p', '--platform-name', help = 'Name that uniquely identifies the platform for the data',
+parser.add_option('-p', '--platform-name', help = 'Name and version of the platform e.g. GSKBB_v1',
                   action = 'store', type = 'string', dest = 'platform', default = '')
-parser.add_option('-v', '--vcf', help = 'Name of the gzip\'d VCF file to create',
+parser.add_option('-v', '--vcf', help = 'Name of the bgzip\'d VCF file to create (just the root, .vcf.gz will be added). This will also be recorded as the batchName in the VCF file header',
                   action = 'store', type = 'string', dest = 'vcf', default = '')
-parser.add_option('-o', '--vcf-path', help = 'Path of directory where to write the gzip\'d VCF file [default: working directory]',
+parser.add_option('-o', '--vcf-path', help = 'Path of directory where to write the gzip\'d VCF file, intermediary files, and the log [default: working directory]',
                   action = 'store', type = 'string', dest = 'vcfpath', default = os.getcwd())
 parser.add_option('-d', '--data-bank', help = 'Path to data bank containing platform definition [default: Production]',
                   action = 'store', type = 'string', dest = 'bank', default = bankconstants.prodbank)
-parser.add_option('-f', '--force', help = 'Force overwrite if VCF already exists',
+parser.add_option('-f', '--force', help = 'Force overwrite if VCF file already exists',
                   action = 'store_true', dest = 'force', default = False)
 (options, args) = parser.parse_args()
 #Get absolute paths for inclusion in log / error messages
