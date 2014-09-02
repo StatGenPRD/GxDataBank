@@ -20,7 +20,7 @@ import bankconstants
 parser = OptionParser(description = 'usage: %prog OPTIONS')
 parser.add_option('-a', '--axiom-files', help = 'Path of the directory containing the gzip\'d AxiomGT1 files to be converted and the Ps.performance.txt.gz from SNPolisher',
                   action = 'store', type = 'string', dest = 'axiom', default = '')
-parser.add_option('-p', '--platform-name', help = 'Name and version of the platform e.g. GSKBB_v1',
+parser.add_option('-p', '--platform-name', help = 'Name and version of the platform e.g. GSKBB1_v1',
                   action = 'store', type = 'string', dest = 'platform', default = '')
 parser.add_option('-v', '--vcf', help = 'Name of the bgzip\'d VCF file to create (just the root, .vcf.gz will be added). This will also be recorded as the batchName in the VCF file header',
                   action = 'store', type = 'string', dest = 'vcf', default = '')
@@ -232,8 +232,7 @@ with gzip.open(options.axiom + callFile, 'rb') as calls, gzip.open(options.axiom
 						alleleB = '0'
 				#Multi-allelic, lookup allele index
 				else :
-					alleles = [platval[3]]
-					alleles.append(platval[4].split(','))
+					alleles = [platval[3]] + platval[4].split(',')
 					for index,nt in enumerate(alleles) :
 						if orientval[1] == nt :
 							alleleA = str(index)
