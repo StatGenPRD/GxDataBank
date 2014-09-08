@@ -4,3 +4,4 @@ def read_through_headers(file,prefix) :
 	while line[0:len(prefix)] == prefix :
 		line = file.readline()
 	return line
+	
