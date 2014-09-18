@@ -118,6 +118,9 @@ with gzip.open(options.axiom + callFile, 'rb') as calls, gzip.open(options.axiom
 		#if call[i] != conf[i] or conf[i] != sum[i] :
 		if call[i] != conf[i] :
 			raise Exception(err5.format(axiomdir,i,'AxiomGT1.calls.txt.gz',call[i],'AxiomGT1.confidences.txt.gz',conf[i]))
+		#removing .CEL extension to match File Registration value in Reflection
+		#unsure if replace is case sensitive, re might be better approach in case file contains .CEL within root name
+		call[i] = call[i].replace('.CEL','',1)
 	#log number of samples
 	logging.info('[%d] samples found in these Axiom files', len(call) - 1)
 	#Start new vcf with headers
