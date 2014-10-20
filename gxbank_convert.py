@@ -240,7 +240,8 @@ with gzip.open(callFile, 'rb') as calls, \
 sorted_base = os.path.join(options.vcfpath,options.vcf + '_sorted')
 sorted_vcf = sorted_base + '.vcf.bgz'
 sorted_err = sorted_base + '.err'
-cmd = "zcat {} | vcf-sort -t {} | bgzip > {} 2> {}".format(vcfFileUnsorted, options.vcfpath, sorted_vcf, sorted_err)
+#Note, the re-dir of stderr to sorted_err will only capture stderr from the last command (bgzip), not everything
+cmd = "zcat {} | {} -t {} | bgzip > {} 2> {}".format(vcfFileUnsorted, bankconstants.vcf_sort, options.vcfpath, sorted_vcf, sorted_err)
 os.system(cmd)
 
 logging.info("vcf [%s] created", sorted_vcf)
