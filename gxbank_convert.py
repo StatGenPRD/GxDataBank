@@ -115,7 +115,7 @@ filter_num = lambda key,value,criteria: key if value != 'NA' and float(value) < 
 ##
 # FILTER Thresholds
 ##
-thresholds_homRO = {'1':0.6, '2':0.3, '3':-0.9}
+thresholds_homRO = {'0':0.6, '1':0.6, '2':0.3, '3':-0.9}
 
 with gzip.open(callFile, 'rb') as calls, \
 	gzip.open(confFile, 'rb') as confs, \
