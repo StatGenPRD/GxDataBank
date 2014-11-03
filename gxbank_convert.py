@@ -21,6 +21,7 @@ start_time = time.time()
 # ARGUMENTS
 #---------------------------------------------------------------------------------------------
 parser = OptionParser(description = 'usage: %prog OPTIONS')
+#Add flag -u to leave unsorted VCF for test cases and then add system call to delete the unsorted after sort finishes
 parser.add_option('-a', '--axiom-files', help = 'Path of the directory containing the gzip\'d AxiomGT1 files to be converted and the Ps.performance.txt.gz from SNPolisher',
                   action = 'store', type = 'string', dest = 'axiom', default = '')
 parser.add_option('-p', '--platform-name', help = 'Name and version of the platform e.g. GSKBB1_v1',
