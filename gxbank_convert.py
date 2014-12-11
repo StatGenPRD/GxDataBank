@@ -92,7 +92,24 @@ else :
 	logging.info('[%s;%s] is creating vcf [%s.vcf.gz] in directory [%s]', pwd.getpwuid(os.getuid())[0], pwd.getpwuid(os.getuid())[4], options.vcf, outdir)
 logging.info('From AxiomGT1 files here [%s]', axiomdir)
 logging.info('Using definition of platform [%s] in bank [%s]', options.platform, bank)
-	
+
+
+##
+# "UNSORT" Ps.performance for GSKBB2 so that "special" APOE probeset is at bottom as it is in the AxiomGT files
+# Affy's guidance for this special probeset is to call using different clustering algorithm parameters requiring separate processing from the rest of the array
+# Their guidance is to manually append the AxiomGT results from this special probeset onto the end of the AxiomGT files from the rest of the array
+# When this combined set of AxiomGT files (the whole array with special probeset appended) is run through SNPolisher's Ps_Classification function, it reports results in sorted order
+# Which results in the special probset no longer being at the bottom of the Ps.performance file and thus this file is inconsistent with the AxiomGT files.
+##
+perfFileUnsorted = os.path.join(options.vcfpath, 'Ps.performance_unsorted.txt')
+
+if options.platform[0:6] == 'GSKBB2' :
+        logging.info('Creating a modified version of Ps.performance with AX-95861335 at the bottom since this is GSKBB2')
+        cmd = "zgrep -v '^AX-95861335' {0} > {1}; zgrep '^AX-95861335' {0} >> {1}; gzip {1}".format(perfFile,perfFileUnsorted)
+        os.system(cmd)
+        perfFile = perfFileUnsorted + '.gz'
+
+
 vcffields = ["#CHROM","POS","ID","REF","ALT","QUAL","FILTER","INFO","FORMAT"]
 
 err1 = "ERROR: Probeset IDs in AxiomGT1 files in [{0}] do not match at record {1}. {2}={3}; {4}={5}; {6}={7}; {8}={9}"
