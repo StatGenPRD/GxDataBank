@@ -41,9 +41,9 @@ parser.add_option('-f', '--force', help = 'Force overwrite if VCF file already e
 #---------------------------------------------------------------------------------------------
 
 #Get absolute paths for inclusion in log / error messages
-outdir = os.path.abspath(options.vcfpath)
-bank = os.path.abspath(options.bank)
-axiomdir = os.path.abspath(options.axiom)
+outdir = os.path.realpath(options.vcfpath)
+bank = os.path.realpath(options.bank)
+axiomdir = os.path.realpath(options.axiom)
 
 #validate vcf name: allow alphanum, dashes, and underscores
 if options.vcf == '' :
