@@ -122,13 +122,13 @@ err5 = "ERROR: AxiomGT1 files in [{0}] have different sample orders, first misma
 # ANNOTATIONS for INFO field
 ##
 annotation_flag = lambda key,value: key if value == '1' else None
-annotation_num = lambda key,value: "{0}={1}".format(key,value) if value != 'NA' else None
+annotation_num = lambda key,value: "{0}={1}".format(key,value) if value != 'NA' and value != '' else None
 annotation_string = lambda key,value: "{0}={1}".format(key,value)
 
 ##
 # FILTERS for FILTER field
 ##
-filter_num = lambda key,value,criteria: key if value != 'NA' and float(value) < criteria else None
+filter_num = lambda key,value,criteria: key if value != 'NA' and value != '' and float(value) < criteria else None
 
 ##
 # FILTER Thresholds
