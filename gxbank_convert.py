@@ -105,7 +105,7 @@ perfFileUnsorted = os.path.join(options.vcfpath, 'Ps.performance_unsorted.txt')
 
 if options.platform[0:6] == 'GSKBB2' :
         logging.info('Creating a modified version of Ps.performance with AX-95861335 at the bottom since this is GSKBB2')
-        cmd = "zgrep -v '^AX-95861335' {0} > {1}; zgrep '^AX-95861335' {0} >> {1}; gzip {1}".format(perfFile,perfFileUnsorted)
+        cmd = "zgrep -v '^AX-95861335' {0} > {1}; zgrep '^AX-95861335' {0} >> {1}; gzip -f {1}".format(perfFile,perfFileUnsorted)
         os.system(cmd)
         perfFile = perfFileUnsorted + '.gz'
 
