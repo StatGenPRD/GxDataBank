@@ -8,6 +8,7 @@ import re
 import gzip
 import os
 import pwd
+import stat
 from datetime import datetime
 import subprocess
 from itertools import izip_longest
@@ -38,7 +39,7 @@ summary_path = os.path.realpath(options.summary)
 posteriors_path = os.path.realpath(options.posteriors)
 
 bank_path = os.path.realpath(options.bank)
-bank_vcf_path = os.path.join(bank_path, 'Data', 'VCF', options.batch + '.vcf.gz')
+bank_vcf_path = os.path.join(bank_path, 'Data', 'VCF', options.batch + '_sorted.vcf.bgz')
 bank_tbi_path = bank_vcf_path + '.tbi'
 bank_summary_path = os.path.join(bank_path, 'Data', 'Other', options.batch + '.summary.txt.gz')
 bank_posteriors_path = os.path.join(bank_path, 'Data', 'Other', options.batch + '.posteriors.txt.gz')
@@ -77,6 +78,8 @@ except subprocess.CalledProcessError as e:
 source_files.append(vcf_path + '.tbi')	
 
 #must pass vcf-validator
+'''
+# PENDING: Commenting out due to performance.  Can safely assume correctly formed at the moment, as all input through GXBANK_CONVERT script
 validator_result = subprocess.check_output(["perl", "-I", bankconstants.vcftools_base + '/perl', bankconstants.vcf_validator, vcf_path],stderr=subprocess.STDOUT)
 validator_result = validator_result.strip().split('\n')
 for error in validator_result :
@@ -87,11 +90,15 @@ for error in validator_result :
 	#Our convention is to define these variants on chr0
 	if re.search(r"Not required", error) == None and error != 'chr0:0 .. REF allele listed in the ALT field??' and error != '':
 		raise Exception('ERROR: vcf [' + vcf_path + '] not valid [' + error + ']')
+'''
 
 #must match platform definition - no extra/missing records
 #CHROM,POS,ID,REF,ALT must match
 #Same sort order - may be able to relax this requirement later
 #samples must also match between the summary and vcf
+
+'''
+# PENDING: Commenting out due to issues with sorted vs not sorted files.  Can safely assume correctly formed at the moment, as all input through GXBANK_CONVERT script
 err1 = "ERROR: VCF file [{0}] does not match PLATFORM file [{1}] on {2} at variant record {3}. VCF={4}; PLATFORM={5}"
 err2 = "ERROR: VCF file [{0}] does not match PLATFORM file [{1}]. Different line counts."
 fields = ["CHROM","POS","ID","REF","ALT"]
@@ -124,7 +131,8 @@ with gzip.open(vcf_path, 'rb') as vcf, gzip.open(platform_path, 'rb') as platfor
 		for i, field in enumerate(fields) :
 			if vals1[i] != vals2[i] :
 				raise Exception(err1.format(vcf_path,platform_path,field,line_num + 1,vals1[i],vals2[i]))
-				
+'''
+
 #lock all files (vcf, batch bcf, platform def)
 #does this handle instances of process interruption (e.g. while vcf being converted to bcf)?
 
@@ -138,9 +146,9 @@ AddLogger.addHandler(RollingLog)
 
 #start log with user and arguments
 if options.force :
-	AddLogger.info('[%s;%s] is overwriting batch [%s] in bank [%s] from platform [%s]', pwd.getpwuid(os.getuid())[0], pwd.getpwuid(os.getuid())[4], options.batch, bank_path, options.platform)
+	AddLogger.info('[%s;%s] is overwriting batch [%s] in bank [%s]', pwd.getpwuid(os.getuid())[0], pwd.getpwuid(os.getuid())[4], options.batch, bank_path)
 else :
-	AddLogger.info('[%s;%s] is adding batch [%s] to bank [%s] from platform [%s]', pwd.getpwuid(os.getuid())[0], pwd.getpwuid(os.getuid())[4], options.batch, bank_path, options.platform)
+	AddLogger.info('[%s;%s] is adding batch [%s] to bank [%s]', pwd.getpwuid(os.getuid())[0], pwd.getpwuid(os.getuid())[4], options.batch, bank_path)
 
 #Attempt to copy vcf, tbi, and summary into bank
 for source,dest in zip(source_files, dest_files) :
@@ -154,9 +162,13 @@ for source,dest in zip(source_files, dest_files) :
 #Set group and permissions of files copied to bank
 for filename in dest_files :
 	os.chown(filename, -1, 2593)
-	os.chmod(filename, 0440)
+
+	current = stat.S_IMODE(os.lstat(filename).st_mode)
+	os.chmod(filename, current | stat.S_IRWXU | stat.S_IRWXG & ~stat.S_IRWXO)
 
 #Compare input and output
+'''
+# PENDING: DIFF not worth time based on standard process for BioBank files.
 for source,dest in zip(source_files, dest_files):
 	try:
 		subprocess.check_output(["diff", source, dest],stderr=subprocess.STDOUT)
@@ -164,6 +176,7 @@ for source,dest in zip(source_files, dest_files):
 		AddLogger.error('File in bank [%s] does not match inpput [%s]', dest, source)
 		AddLogger.error('Subprocess diff error: [%s]',e.output.strip())
 		raise Exception('File in bank [%s] does not match input [%s] error: [%s]' % (dest, source, e.output))
+'''
 
 AddLogger.info('batch [%s] added with [%s] samples and [%s] variant records', options.batch , str(sample_count), str(var_count))
 

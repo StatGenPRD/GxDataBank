@@ -258,6 +258,9 @@ with gzip.open(callFile, 'rb') as calls, \
 sorted_base = os.path.join(options.vcfpath,options.vcf + '_sorted')
 sorted_vcf = sorted_base + '.vcf.bgz'
 sorted_err = sorted_base + '.err'
+# Ensure OUTDIR is used for TEMP output of SORT
+os.environ['TMPDIR'] = outdir
+
 #Note, the re-dir of stderr to sorted_err will only capture stderr from the last command (bgzip), not everything
 cmd = "zcat {} | {} -t {} | bgzip > {} 2> {}".format(vcfFileUnsorted, bankconstants.vcf_sort, options.vcfpath, sorted_vcf, sorted_err)
 os.system(cmd)
