@@ -21,6 +21,7 @@ start_time = time.time()
 # ARGUMENTS
 #---------------------------------------------------------------------------------------------
 parser = OptionParser(description = 'usage: %prog OPTIONS')
+#Add flag -u to leave unsorted VCF for test cases and then add system call to delete the unsorted after sort finishes
 parser.add_option('-a', '--axiom-files', help = 'Path of the directory containing the gzip\'d AxiomGT1 files to be converted and the Ps.performance.txt.gz from SNPolisher',
                   action = 'store', type = 'string', dest = 'axiom', default = '')
 parser.add_option('-p', '--platform-name', help = 'Name and version of the platform e.g. GSKBB1_v1',
@@ -40,9 +41,9 @@ parser.add_option('-f', '--force', help = 'Force overwrite if VCF file already e
 #---------------------------------------------------------------------------------------------
 
 #Get absolute paths for inclusion in log / error messages
-outdir = os.path.abspath(options.vcfpath)
-bank = os.path.abspath(options.bank)
-axiomdir = os.path.abspath(options.axiom)
+outdir = os.path.realpath(options.vcfpath)
+bank = os.path.realpath(options.bank)
+axiomdir = os.path.realpath(options.axiom)
 
 #validate vcf name: allow alphanum, dashes, and underscores
 if options.vcf == '' :
@@ -91,7 +92,24 @@ else :
 	logging.info('[%s;%s] is creating vcf [%s.vcf.gz] in directory [%s]', pwd.getpwuid(os.getuid())[0], pwd.getpwuid(os.getuid())[4], options.vcf, outdir)
 logging.info('From AxiomGT1 files here [%s]', axiomdir)
 logging.info('Using definition of platform [%s] in bank [%s]', options.platform, bank)
-	
+
+
+##
+# "UNSORT" Ps.performance for GSKBB2 so that "special" APOE probeset is at bottom as it is in the AxiomGT files
+# Affy's guidance for this special probeset is to call using different clustering algorithm parameters requiring separate processing from the rest of the array
+# Their guidance is to manually append the AxiomGT results from this special probeset onto the end of the AxiomGT files from the rest of the array
+# When this combined set of AxiomGT files (the whole array with special probeset appended) is run through SNPolisher's Ps_Classification function, it reports results in sorted order
+# Which results in the special probset no longer being at the bottom of the Ps.performance file and thus this file is inconsistent with the AxiomGT files.
+##
+perfFileUnsorted = os.path.join(options.vcfpath, 'Ps.performance_unsorted.txt')
+
+if options.platform[0:6] == 'GSKBB2' :
+        logging.info('Creating a modified version of Ps.performance with AX-95861335 at the bottom since this is GSKBB2')
+        cmd = "zgrep -v '^AX-95861335' {0} > {1}; zgrep '^AX-95861335' {0} >> {1}; gzip -f {1}".format(perfFile,perfFileUnsorted)
+        os.system(cmd)
+        perfFile = perfFileUnsorted + '.gz'
+
+
 vcffields = ["#CHROM","POS","ID","REF","ALT","QUAL","FILTER","INFO","FORMAT"]
 
 err1 = "ERROR: Probeset IDs in AxiomGT1 files in [{0}] do not match at record {1}. {2}={3}; {4}={5}; {6}={7}; {8}={9}"
@@ -104,13 +122,13 @@ err5 = "ERROR: AxiomGT1 files in [{0}] have different sample orders, first misma
 # ANNOTATIONS for INFO field
 ##
 annotation_flag = lambda key,value: key if value == '1' else None
-annotation_num = lambda key,value: "{0}={1}".format(key,value) if value != 'NA' else None
+annotation_num = lambda key,value: "{0}={1}".format(key,value) if value != 'NA' and value != '' else None
 annotation_string = lambda key,value: "{0}={1}".format(key,value)
 
 ##
 # FILTERS for FILTER field
 ##
-filter_num = lambda key,value,criteria: key if value != 'NA' and float(value) < criteria else None
+filter_num = lambda key,value,criteria: key if value != 'NA' and value != '' and float(value) < criteria else None
 
 ##
 # FILTER Thresholds
