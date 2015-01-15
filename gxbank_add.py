@@ -129,14 +129,6 @@ with gzip.open(vcf_path, 'rb') as vcf, gzip.open(summary_path, 'rb') as summary:
 				raise Exception(err1.format(vcf_path,platform_path,field,line_num + 1,vals1[i],vals2[i]))
 '''
 
-'''
-#restoring subset of "check" code from above that looks at summary and posterior files (these are not used in GXBANK_CONVERT and there is risk the wrong files could be specified by the user)
-ith gzip.open(vcf_path, 'rb') as vcf, gzip.open(summary_path, 'rb') as summary, gzip.open(posteriors_path, 'rb') as posteriors:
-        #remove header comments from each file and capture header row
-	vcfhead = bankfunctions.read_through_headers(vcf,'##')
-	summaryhead = bankfunctions.read_through_headers(summary,'#')
-	posteriorshead = bankfunctions.read_through_headers(posteriors,'#')
-'''
 #lock all files (vcf, batch bcf, platform def)
 #does this handle instances of process interruption (e.g. while vcf being converted to bcf)?
 
