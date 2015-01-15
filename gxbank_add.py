@@ -23,10 +23,8 @@ parser.add_option('-b', '--batch-name', help = 'Name of batch of data as supplie
                   action = 'store', type = 'string', dest = 'batch', default = '')
 parser.add_option('-v', '--vcf', help = 'Path and name of the bgzip\'d VCF file to add',
                   action = 'store', type = 'string', dest = 'vcf', default = '')
-parser.add_option('-s', '--summary-data', help = 'Path and name of the gzip\'d AxiomGT1.summary.txt file containing the intensity data for the clusterset used to generate the VCF file',
-                  action = 'store', type = 'string', dest = 'summary', default = '')
-parser.add_option('-p', '--posterior-data', help = 'Path and name of the gzip\'d AxiomGT1.posteriors.txt file containing the posteriors for the clusterset used to generate the VCF file',
-                  action = 'store', type = 'string', dest = 'posteriors', default = '')
+parser.add_option('-a', '--axiom-data', help = 'Path of the directory containing the gzip\'d AxiomGT1.summary.txt and AxiomGT1.snp-posteriors.txt files for the clusterset used to generate the VCF file',
+                  action = 'store', type = 'string', dest = 'axiom', default = '')
 parser.add_option('-d', '--data-bank', help = 'Path to data bank [default: Production]',
                   action = 'store', type = 'string', dest = 'bank', default = bankconstants.prodbank)
 parser.add_option('-f', '--force', help = 'Force overwrite if VCF already exists in bank',
@@ -35,8 +33,8 @@ parser.add_option('-f', '--force', help = 'Force overwrite if VCF already exists
 
 vcf_path = os.path.realpath(options.vcf)
 tbi_path = vcf_path + '.tbi'
-summary_path = os.path.realpath(options.summary)
-posteriors_path = os.path.realpath(options.posteriors)
+summary_path = os.path.realpath(options.axiom) + '/AxiomGT1.summary.txt.gz'
+posteriors_path = os.path.realpath(options.axiom) + '/AxiomGT1.snp-posteriors.txt.gz'
 
 bank_path = os.path.realpath(options.bank)
 bank_vcf_path = os.path.join(bank_path, 'Data', 'VCF', options.batch + '_sorted.vcf.bgz')
@@ -66,7 +64,7 @@ if not os.access(os.path.join(bank_path, 'Data', 'Other'), os.W_OK) :
 	raise Exception('ERROR: user cannot write to bank [' + bank_path + '/Data/Other]')
 
 #check if batch name already exists in bank and not forcing
-for filename in [bank_vcf_path,bank_tbi_path,bank_summary_path] :
+for filename in dest_files :
 	if os.path.isfile(filename) and not options.force :
 		raise Exception('ERROR: batch-name [' + options.batch + '] already loaded to this bank [' + filename + ']')
 
@@ -97,28 +95,26 @@ for error in validator_result :
 #Same sort order - may be able to relax this requirement later
 #samples must also match between the summary and vcf
 
-'''
-# PENDING: Commenting out due to issues with sorted vs not sorted files.  Can safely assume correctly formed at the moment, as all input through GXBANK_CONVERT script
+
 err1 = "ERROR: VCF file [{0}] does not match PLATFORM file [{1}] on {2} at variant record {3}. VCF={4}; PLATFORM={5}"
 err2 = "ERROR: VCF file [{0}] does not match PLATFORM file [{1}]. Different line counts."
 fields = ["CHROM","POS","ID","REF","ALT"]
-with gzip.open(vcf_path, 'rb') as vcf, gzip.open(platform_path, 'rb') as platform, gzip.open(summary_path, 'rb') as summary, gzip.open(posteriors_path, 'rb') as posteriors:
+with gzip.open(vcf_path, 'rb') as vcf, gzip.open(summary_path, 'rb') as summary:
 	#remove header comments from each file and capture header row
 	vcfhead = bankfunctions.read_through_headers(vcf,'##')
-	platformhead = bankfunctions.read_through_headers(platform,'##')
+	#platformhead = bankfunctions.read_through_headers(platform,'##')
 	summaryhead = bankfunctions.read_through_headers(summary,'#')
-	posteriorshead = bankfunctions.read_through_headers(posteriors,'#')
-	
-	#check samples match between vcf and summary
+		
+	#check samples match between vcf and summary to ensure correct summary file selected (assume posterior file matches by virtue of being in same directory)
 	vcf_samples = vcfhead.strip().split('\t')
+	pattern = re.compile("\.cel", re.IGNORECASE)
 	summary_samples = summaryhead.strip().split('\t')
-	posteriors_samples = posteriorshead.strip().split('\t')
-	if vcf_samples[9:] != summary_samples[1:] :
-		raise Exception('ERROR: vcf + [' + vcf_path + '] samples do not match samples in summary [' + summary_path + ']')
-        if vcf_samples[9:] != posterior_samples[1:] :
-		raise Exception('ERROR: vcf + [' + vcf_path + '] samples do not match samples in posteriors file [' + posteriors_path + ']')
-	sample_count = len(summary_samples) - 1
-	
+	summary_samples_no_cel = [pattern.sub("", sample) for sample in summary_samples[1:]]
+	if vcf_samples[9:] != summary_samples_no_cel[0:] :
+		raise Exception('ERROR: vcf [' + vcf_path + '] samples do not match samples in summary [' + summary_path + ']')
+        sample_count = len(summary_samples_no_cel)
+'''
+# PENDING: Commenting out due to issues with sorted vs not sorted files.  Can safely assume correctly formed at the moment, as all input through GXBANK_CONVERT script	
 	#check variants match between vcf and platform
 	var_count = 0
 	paired_lines = izip_longest(vcf,platform,fillvalue='MISSING')
@@ -133,6 +129,14 @@ with gzip.open(vcf_path, 'rb') as vcf, gzip.open(platform_path, 'rb') as platfor
 				raise Exception(err1.format(vcf_path,platform_path,field,line_num + 1,vals1[i],vals2[i]))
 '''
 
+'''
+#restoring subset of "check" code from above that looks at summary and posterior files (these are not used in GXBANK_CONVERT and there is risk the wrong files could be specified by the user)
+ith gzip.open(vcf_path, 'rb') as vcf, gzip.open(summary_path, 'rb') as summary, gzip.open(posteriors_path, 'rb') as posteriors:
+        #remove header comments from each file and capture header row
+	vcfhead = bankfunctions.read_through_headers(vcf,'##')
+	summaryhead = bankfunctions.read_through_headers(summary,'#')
+	posteriorshead = bankfunctions.read_through_headers(posteriors,'#')
+'''
 #lock all files (vcf, batch bcf, platform def)
 #does this handle instances of process interruption (e.g. while vcf being converted to bcf)?
 
@@ -167,8 +171,8 @@ for filename in dest_files :
 	os.chmod(filename, current | stat.S_IRWXU | stat.S_IRWXG & ~stat.S_IRWXO)
 
 #Compare input and output
-'''
-# PENDING: DIFF not worth time based on standard process for BioBank files.
+
+# PENDING: DIFF not worth time based on standard process for BioBank files.  How does "standard process" relate to the scenario this is testing (that the copy from outside to inside the bank was interrupted or otherwise corrupted)?  Seems it is still relevant (but low risk).
 for source,dest in zip(source_files, dest_files):
 	try:
 		subprocess.check_output(["diff", source, dest],stderr=subprocess.STDOUT)
@@ -176,9 +180,13 @@ for source,dest in zip(source_files, dest_files):
 		AddLogger.error('File in bank [%s] does not match inpput [%s]', dest, source)
 		AddLogger.error('Subprocess diff error: [%s]',e.output.strip())
 		raise Exception('File in bank [%s] does not match input [%s] error: [%s]' % (dest, source, e.output))
-'''
 
+
+'''
+# PENDING: since not checking against platform above, not counting variants so removing from log entry
 AddLogger.info('batch [%s] added with [%s] samples and [%s] variant records', options.batch , str(sample_count), str(var_count))
+'''
+AddLogger.info('batch [%s] added with [%s] samples', options.batch , str(sample_count))
 
 
 
