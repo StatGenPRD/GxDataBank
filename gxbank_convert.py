@@ -166,7 +166,7 @@ with gzip.open(callFile, 'rb') as calls, \
 ##fileAuthor="{author}"
 ##FILTER=<ID=fld,Description="FLD less than 3.6">
 ##FILTER=<ID=hs,Description="HetSO less than -0.1">
-##FILTER=<ID=cr,Description="Call rate less than 0.95">
+##FILTER=<ID=cr,Description="Call rate less than 95 percent">
 ##FILTER=<ID=hr,Description="HomRO less than 0.6|0.3|-0.9 for 1|2|3 clusters respectively">
 ##INFO=<ID=CR,Number=1,Type=Float,Description="Call rate">
 ##INFO=<ID=FLD,Number=1,Type=Float,Description="FLD">
@@ -242,7 +242,7 @@ with gzip.open(callFile, 'rb') as calls, \
 
 		#Assemble filter field
 		filters = [
-			filter_num('cr',perfval[2],0.95),
+			filter_num('cr',perfval[2],95.0,
 			filter_num('fld',perfval[3],3.6),
 			filter_num('hs',perfval[5],-0.1),
 			filter_num('hr',perfval[6],thresholds_homRO[perfval[8]])
