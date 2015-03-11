@@ -242,7 +242,7 @@ with gzip.open(callFile, 'rb') as calls, \
 
 		#Assemble filter field
 		filters = [
-			filter_num('cr',perfval[2],95.0,
+			filter_num('cr',perfval[2],95.0),
 			filter_num('fld',perfval[3],3.6),
 			filter_num('hs',perfval[5],-0.1),
 			filter_num('hr',perfval[6],thresholds_homRO[perfval[8]])
