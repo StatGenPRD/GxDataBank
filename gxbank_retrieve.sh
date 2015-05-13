@@ -1,5 +1,8 @@
 #! /bin/bash
 
+#USAGE: nohup /path/to/gxbank_retrieve.sh /path/to/raw/vcf.bgz STUDYNAME /path/to/outdir PLATFORM_v /path/to/CELtoUSUB >/path/to/nohup.out 2>&1 &
+#nohup & background suggested since takes ~20 min
+
 #######
 #Input parameters
 #######
@@ -49,7 +52,7 @@ echo "Poorer performing of replicate assays excluded: `cat $OUTDIR/not_SPB.ps | 
 cut -f 1-2 $CELtoUSUBJ >$OUTDIR/CEL.keep
 echo "Subjects requested: `cat $OUTDIR/CEL.keep | wc -l`" >>$OUTDIR/RETRIEVE.log
 
-$plink2 --vcf $OUTDIR/SPClass.vcf.bgz --exclude $OUTDIR/not_SPB.ps --extract $OUTDIR/platform_pass.ps --double-id --make-bed --update-ids $OUTDIR/CEL_to_USUBJ.txt --out $OUTDIR/$STUDY --keep CEL.keep --split-x hg19 no-fail
+$plink2 --vcf $OUTDIR/SPClass.vcf.bgz --exclude $OUTDIR/not_SPB.ps --extract $OUTDIR/platform_pass.ps --double-id --make-bed --update-ids $CELtoUSUBJ --out $OUTDIR/$STUDY --keep $OUTDIR/CEL.keep --split-x hg19 no-fail
 echo "Subjects retrieved: `cat $OUTDIR/$STUDY.fam | wc -l`" >>$OUTDIR/RETRIEVE.log
 echo "Assays retrieved: `cat $OUTDIR/$STUDY.bim | wc -l`" >>$OUTDIR/RETRIEVE.log
 
