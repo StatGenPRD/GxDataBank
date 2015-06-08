@@ -61,7 +61,7 @@ echo "Assays retrieved: `cat $OUTDIR/$STUDY.bim | wc -l`" >>$OUTDIR/RETRIEVE.log
 ######
 #Alternative approach to use vcftools instead of plink2
 #Takes ~16 min for a clusterset instead of ~2 min for plink2
-#Unlike plink2, removes 9 ps that interrogate 2 non-ref alleles as non-bi-allelic even though the ref allele is not interrogated by a separate probeset (so from GSKBB2 perspective, it is bi-allelic and thus not filtered as oa)
+#Unlike plink2, removes 9 ps that interrogate 2 non-ref alleles as non-bi-allelic even though the ref allele is not interrogated by a separate probeset (so from GSKBB2 perspective, it is bi-allelic and thus not filtered as oa). However, while plink2 retains these probesets, it drops the 2nd ALT allele such that they have many artificially missing genotypes and are monomorphic.
 ######
 #$vcftools --gzvcf $OUTDIR/SPClass.vcf.bgz --keep-INFO SPB --snps $OUTDIR/platform_pass.ps --plink-tped --out $OUTDIR/BestPS
 #cut -f 3-4 $OUTDIR/CEL_to_USUBJ.txt >$OUTDIR/USUBJ.keep
